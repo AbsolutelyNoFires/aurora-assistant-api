@@ -41,6 +41,9 @@ namespace Companion
             {
                 Dialogs.UiThreadId = Dialogs.GetCurrentThreadId();
                 Recorder.Start();
+                // The AuroraPatch launcher stays open after starting and covers the map's toolbar.
+                foreach (var f in OpenForms().Where(f => f.GetType().Name == "AuroraPatchForm"))
+                    f.WindowState = FormWindowState.Minimized;
                 return true;
             });
 
