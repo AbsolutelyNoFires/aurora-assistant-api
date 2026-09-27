@@ -151,40 +151,64 @@ namespace Companion
                     return "control is not selectable";
 
                 case "doubleclick":
-                    // Several Aurora lists act on double-click; raise it via the protected OnDoubleClick.
+                    // Several Aurora lists act on double-click (e.g. adding a component to a class).
+                    // With a value, the item is selected first, as a player's double-click would.
+                    Action select = null;
+                    if (value != null || index >= 0)
+                    {
+                        var err = Prepare(c, "select", args, out select);
+                        if (err != null)
+                            return err;
+                    }
                     var method = typeof(Control).GetMethod("OnDoubleClick", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-                    perform = () => method.Invoke(c, new object[] { EventArgs.Empty });
+                    perform = () =>
+                    {
+                        select?.Invoke();
+                        method.Invoke(c, new object[] { EventArgs.Empty });
+                    };
                     return null;
             }
             return "unknown action (click, set, select, doubleclick)";
         }
 
-        /// <summary>Exact match first, then case-insensitive, then prefix.</summary>
+        /// <summary>
+        /// Exact match first, then case-insensitive, then prefix; runs of whitespace are treated as one
+        /// space since Aurora's names often contain double spaces.
+        /// </summary>
         private static int Find(IEnumerable<string> items, string value)
         {
             if (value == null)
                 return -1;
-            var list = items.Select(s => (s ?? "").Trim()).ToList();
-            int i = list.IndexOf(value.Trim());
-            if (i < 0) i = list.FindIndex(s => s.Equals(value.Trim(), StringComparison.OrdinalIgnoreCase));
-            if (i < 0) i = list.FindIndex(s => s.StartsWith(value.Trim(), StringComparison.OrdinalIgnoreCase));
+            var list = items.Select(Normalize).ToList();
+            var v = Normalize(value);
+            int i = list.IndexOf(v);
+            if (i < 0) i = list.FindIndex(s => s.Equals(v, StringComparison.OrdinalIgnoreCase));
+            if (i < 0) i = list.FindIndex(s => s.StartsWith(v, StringComparison.OrdinalIgnoreCase));
             return i;
         }
 
-        /// <summary>Path segments separated by " > " (node texts can contain '/' or '\').</summary>
+        private static string Normalize(string s) =>
+            System.Text.RegularExpressions.Regex.Replace((s ?? "").Trim(), @"\s+", " ");
+
+        /// <summary>
+        /// Path segments separated by " > " (node texts can contain '/' or '\'). Parents are expanded
+        /// on the way down because Aurora fills some trees' children only when a node is expanded.
+        /// </summary>
         private static TreeNode FindNode(TreeNodeCollection nodes, string path)
         {
             if (string.IsNullOrWhiteSpace(path))
                 return null;
             var parts = path.Split(new[] { " > " }, StringSplitOptions.None);
             TreeNode found = null;
-            foreach (var part in parts)
+            for (int p = 0; p < parts.Length; p++)
             {
                 var candidates = nodes.Cast<TreeNode>().ToList();
-                int i = Find(candidates.Select(n => n.Text), part);
+                int i = Find(candidates.Select(n => n.Text), parts[p]);
                 if (i < 0)
                     return null;
                 found = candidates[i];
+                if (p < parts.Length - 1 && !found.IsExpanded)
+                    found.Expand();
                 nodes = found.Nodes;
             }
             return found;

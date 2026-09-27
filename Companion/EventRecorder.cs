@@ -13,7 +13,7 @@ namespace Companion
         public string GameTime;
         /// <summary>user (real player input), api (companion action), or game (window lifecycle).</summary>
         public string Source;
-        /// <summary>form_open, form_close, form_focus, click, check, select, text, tab, dialog_open, dialog_close.</summary>
+        /// <summary>form_open, form_close, form_focus, click, doubleclick, check, select, text, tab, dialog_open, dialog_close.</summary>
         public string Type;
         public string Form;
         public string FormTitle;
@@ -210,6 +210,7 @@ namespace Companion
                     combo.SelectedIndexChanged += (s, e) => Changed(combo, "select", combo.Text);
                     break;
                 case ListBox lb:
+                    lb.DoubleClick += (s, e) => Changed(lb, "doubleclick", lb.SelectedItem == null ? null : lb.GetItemText(lb.SelectedItem));
                     lb.SelectedIndexChanged += (s, e) => Changed(lb, "select", lb.SelectedItem == null ? null : lb.GetItemText(lb.SelectedItem));
                     break;
                 case ListView lv:
@@ -219,10 +220,12 @@ namespace Companion
                         if (lv.SelectedItems.Count > 0)
                             Changed(lv, "select", RowText(lv.SelectedItems[0]));
                     };
+                    lv.DoubleClick += (s, e) => { if (lv.SelectedItems.Count > 0) Changed(lv, "doubleclick", RowText(lv.SelectedItems[0])); };
                     lv.ItemChecked += (s, e) => Changed(lv, "check", (e.Item.Checked ? "checked: " : "unchecked: ") + RowText(e.Item));
                     break;
                 case TreeView tv:
                     tv.AfterSelect += (s, e) => Changed(tv, "select", e.Node?.FullPath);
+                    tv.DoubleClick += (s, e) => Changed(tv, "doubleclick", tv.SelectedNode?.FullPath);
                     tv.AfterCheck += (s, e) => Changed(tv, "check", (e.Node.Checked ? "checked: " : "unchecked: ") + e.Node.FullPath);
                     break;
                 case TabControl tabs:
