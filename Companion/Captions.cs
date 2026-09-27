@@ -15,13 +15,17 @@ namespace Companion
         private const int MaxGapLeft = 250;
         private const int MaxGapAbove = 24;
 
+        /// <summary>Aurora shows values in Labels named txt*/lbl*; other labels (label12, …) are captions.</summary>
+        private static bool IsValueLabel(Control c) =>
+            c is Label && (c.Name.StartsWith("txt", StringComparison.Ordinal) || c.Name.StartsWith("lbl", StringComparison.Ordinal));
+
         public static bool IsCaption(Control c) =>
-            c is Label && !string.IsNullOrWhiteSpace(c.Text) && !c.Name.StartsWith("txt", StringComparison.OrdinalIgnoreCase);
+            c is Label && !string.IsNullOrWhiteSpace(c.Text) && !IsValueLabel(c);
 
         public static bool IsValue(Control c) =>
             c is TextBoxBase || c is ComboBox || c is NumericUpDown || c is ListBox || c is ListView ||
             c is TreeView || c is DateTimePicker || c is TrackBar ||
-            (c is Label && c.Name.StartsWith("txt", StringComparison.OrdinalIgnoreCase));
+            IsValueLabel(c);
 
         /// <summary>value control → caption label, among sibling controls.</summary>
         public static Dictionary<Control, Control> Pair(IList<Control> siblings)

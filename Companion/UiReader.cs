@@ -254,11 +254,17 @@ namespace Companion
             }
             if (node.TryGetValue("rows", out var rows))
             {
-                sb.Append(pad).Append("  | ").Append(string.Join(" | ", (List<string>)node["columns"])).Append('\n');
+                // Aurora draws its headers as ordinary rows and leaves the real column headers as placeholders.
+                var columns = (List<string>)node["columns"];
+                if (columns.Any(c => !string.IsNullOrWhiteSpace(c) && c != "ColumnHeader"))
+                    sb.Append(pad).Append("  | ").Append(string.Join(" | ", columns)).Append('\n');
                 var sel = node.TryGetValue("selectedIndices", out var s) ? (List<int>)s : new List<int>();
                 int i = 0;
                 foreach (var row in (List<List<string>>)rows)
+                {
+                    if (row.All(string.IsNullOrWhiteSpace)) { i++; continue; } // spacer rows
                     sb.Append(pad).Append(sel.Contains(i++) ? "  >" : "  |").Append(' ').Append(string.Join(" | ", row.Select(OneLine))).Append('\n');
+                }
                 if ((int)node["rowCount"] > i)
                     sb.Append(pad).Append("  … ").Append((int)node["rowCount"] - i).Append(" more rows\n");
             }

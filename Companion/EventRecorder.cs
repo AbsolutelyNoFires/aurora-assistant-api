@@ -323,7 +323,7 @@ namespace Companion
                 Source = source,
                 Type = type,
                 Form = form?.Name,
-                FormTitle = form?.Text,
+                FormTitle = form == null ? null : Api.WindowName(form),
                 Control = c?.Name,
                 Kind = c == null ? null : UiReader.Kind(c),
                 Label = c == null ? null : Label(c),

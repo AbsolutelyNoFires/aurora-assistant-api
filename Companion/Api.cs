@@ -64,6 +64,7 @@ namespace Companion
                 return patch.OpenForms().Select(f => new
                 {
                     id = FormId(f),
+                    name = f == patch.TacticalMap ? "Tactical Map" : WindowName(f),
                     title = f.Text,
                     known = known.TryGetValue(f.GetType().Name, out var k) ? k : null,
                     type = f.GetType().Name,
@@ -141,10 +142,24 @@ namespace Companion
         }
 
         private Form FindForm(string key, System.Collections.Generic.Dictionary<string, string> known) =>
+            string.Equals(key, "Tactical Map", StringComparison.OrdinalIgnoreCase) ? patch.TacticalMap :
             patch.OpenForms().FirstOrDefault(f =>
                 FormId(f) == key ||
                 (known.TryGetValue(f.GetType().Name, out var k) && string.Equals(k, key, StringComparison.OrdinalIgnoreCase)) ||
-                string.Equals(f.Text, key, StringComparison.OrdinalIgnoreCase));
+                string.Equals(f.Text, key, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(WindowName(f), WindowName(key), StringComparison.OrdinalIgnoreCase));
+
+        /// <summary>
+        /// Stable window name: several Aurora windows append "   {game date}   Racial Wealth …" to their
+        /// title, which changes every time increment.
+        /// </summary>
+        internal static string WindowName(Form f) => WindowName(f.Text);
+
+        internal static string WindowName(string title)
+        {
+            var i = (title ?? "").IndexOf("   ", StringComparison.Ordinal);
+            return (i > 0 ? title.Substring(0, i) : title ?? "").Trim();
+        }
 
         private static string FormId(Form f) => f.Handle.ToInt64().ToString("x");
 
