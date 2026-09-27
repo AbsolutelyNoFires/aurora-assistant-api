@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyName>Companion</AssemblyName>
+    <RootNamespace>Companion</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <UseWindowsForms>false</UseWindowsForms>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <!-- Aurora install used for references and deployment. -->
+    <AuroraDir Condition="'$(AuroraDir)' == ''">$(HOME)/Aurora4x/Aurora271Full</AuroraDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="AuroraPatch">
+      <HintPath>$(AuroraDir)/AuroraPatch.exe</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(AuroraDir)/0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(AuroraDir)/Newtonsoft.Json.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Lib">
+      <HintPath>$(AuroraDir)/Patches/Lib/Lib.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- dotnet build -t:Deploy : copy the patch into Aurora's Patches folder. -->
+  <Target Name="Deploy" DependsOnTargets="Build">
+    <MakeDir Directories="$(AuroraDir)/Patches/Companion" />
+    <Copy SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb" DestinationFolder="$(AuroraDir)/Patches/Companion" />
+  </Target>
+
+</Project>
