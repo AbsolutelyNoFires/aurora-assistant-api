@@ -23,13 +23,27 @@ namespace Companion
 
         private HttpServer server;
 
+        internal EventRecorder Recorder { get; private set; }
+
         protected override void Loaded(Harmony harmony)
         {
             Lib = GetDependency<Lib.Lib>("Lib");
+            harmony.Patch(
+                AccessTools.Method(typeof(Button), "OnClick"),
+                prefix: new HarmonyMethod(typeof(EventRecorder), nameof(EventRecorder.ButtonClickPrefix)));
         }
 
         protected override void Started()
         {
+            Recorder = new EventRecorder(this);
+            EventRecorder.Instance = Recorder;
+            OnUi(() =>
+            {
+                Dialogs.UiThreadId = Dialogs.GetCurrentThreadId();
+                Recorder.Start();
+                return true;
+            });
+
             var api = new Api(this);
             server = new HttpServer(Port, api.Handle, LogError);
             server.Start();

@@ -29,6 +29,7 @@ namespace Companion
             {
                 ["kind"] = Kind(control),
                 ["name"] = control.Name,
+                ["bounds"] = new[] { control.Left, control.Top, control.Width, control.Height },
             };
 
             var text = control.Text;
@@ -92,11 +93,21 @@ namespace Companion
                     break;
             }
 
-            var children = control.Controls.Cast<Control>()
+            var visible = control.Controls.Cast<Control>()
                 .Where(c => opt.IncludeHidden || c.Visible)
                 .OrderBy(c => c.Top).ThenBy(c => c.Left)
-                .Select(c => Read(c, opt))
                 .ToList();
+            var captions = Captions.Pair(visible);
+            var children = new List<Dictionary<string, object>>();
+            foreach (var c in visible)
+            {
+                var child = Read(c, opt);
+                if (captions.TryGetValue(c, out var caption))
+                    child["label"] = caption.Text.Trim();
+                else if (captions.Values.Contains(c))
+                    child["captionOf"] = captions.First(kv => kv.Value == c).Key.Name;
+                children.Add(child);
+            }
             if (children.Count > 0)
                 node["children"] = children;
             return node;
@@ -195,16 +206,29 @@ namespace Companion
                 return;
             }
 
+            // Captions are printed with the control they label.
+            if (node.ContainsKey("captionOf"))
+                return;
+
             var pad = new string(' ', depth * 2);
             sb.Append(pad).Append(kind);
             if (!string.IsNullOrEmpty(node["name"] as string))
                 sb.Append(' ').Append(node["name"]);
+            if (node.TryGetValue("label", out var label))
+                sb.Append(" \"").Append(OneLine(label)).Append("\":");
             if (node.TryGetValue("text", out var text))
                 sb.Append(" \"").Append(OneLine(text)).Append('"');
             if (node.TryGetValue("tooltip", out var tooltip))
                 sb.Append(" tip=\"").Append(OneLine(tooltip)).Append('"');
+            string block = null;
             if (node.TryGetValue("value", out var value))
-                sb.Append(" = \"").Append(OneLine(value)).Append('"');
+            {
+                var v = value?.ToString() ?? "";
+                if (v.Contains("\n"))
+                    block = v; // Multi-line values (e.g. design summaries) print as an indented block below.
+                else
+                    sb.Append(" = \"").Append(v).Append('"');
+            }
             if (node.TryGetValue("checked", out var chk))
                 sb.Append((bool)chk ? " [x]" : " [ ]");
             if (node.TryGetValue("selectedTab", out var tab))
@@ -214,6 +238,11 @@ namespace Companion
             if (node.ContainsKey("enabled"))
                 sb.Append(" (disabled)");
             sb.Append('\n');
+            if (block != null)
+            {
+                foreach (var line in block.Replace("\r\n", "\n").TrimEnd('\n').Split('\n'))
+                    sb.Append(pad).Append("  │ ").Append(line.TrimEnd()).Append('\n');
+            }
 
             if (node.TryGetValue("items", out var items))
             {

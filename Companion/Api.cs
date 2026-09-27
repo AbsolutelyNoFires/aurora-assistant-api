@@ -9,10 +9,12 @@ namespace Companion
     internal class Api
     {
         private readonly Companion patch;
+        private readonly Actions actions;
 
         public Api(Companion patch)
         {
             this.patch = patch;
+            actions = new Actions(patch, patch.Recorder);
         }
 
         public HttpResponse Handle(HttpRequest req)
@@ -26,8 +28,17 @@ namespace Companion
                 return Json(Forms());
             if (segments.Length == 2 && segments[0] == "forms")
                 return FormTree(segments[1], req);
-            if (segments.Length == 5 && segments[0] == "forms" && segments[2] == "controls" && segments[4] == "click" && req.Method == "POST")
-                return Click(segments[1], segments[3]);
+            if (segments.Length == 5 && segments[0] == "forms" && segments[2] == "controls" && req.Method == "POST")
+                return ControlAction(segments[1], segments[3], segments[4], req);
+            if (path == "/events")
+                return Events(req);
+            if (path == "/dialogs")
+                return Json(Dialogs.List());
+            if (segments.Length == 3 && segments[0] == "dialogs" && segments[2] == "click" && req.Method == "POST")
+            {
+                var err = Dialogs.Click(segments[1], Args(req).TryGetValue("button", out var b) ? b : null);
+                return err == null ? Json(new { ok = true }) : Json(new { error = err }, 400);
+            }
 
             return Json(new { error = "not found", path = req.Path }, 404);
         }
@@ -91,26 +102,42 @@ namespace Companion
             return new HttpResponse { ContentType = "text/plain; charset=utf-8", Body = UiReader.ToText(tree) };
         }
 
-        /// <summary>POST /forms/{form}/controls/{name}/click — PerformClick on a named button.</summary>
-        private HttpResponse Click(string formKey, string controlName)
+        /// <summary>
+        /// POST /forms/{form}/controls/{name}/{click|set|select|doubleclick} with value/index/wait
+        /// as query parameters or a JSON object body.
+        /// </summary>
+        private HttpResponse ControlAction(string formKey, string controlName, string action, HttpRequest req)
         {
+            var args = Args(req);
             var known = patch.KnownFormNames();
-            var result = patch.OnUi(() =>
+            var form = patch.OnUi(() => FindForm(formKey, known));
+            if (form == null)
+                return Json(new { error = "form not open", form = formKey }, 404);
+            int wait = args.TryGetValue("wait", out var w) && int.TryParse(w, out var ms) ? ms : 3000;
+            var result = actions.Run(form, controlName, action, args, wait);
+            return Json(result, result.Status == "error" ? 400 : 200);
+        }
+
+        /// <summary>GET /events?since=N&amp;wait=ms&amp;limit=N — long-polls until events after N exist.</summary>
+        private HttpResponse Events(HttpRequest req)
+        {
+            long since = long.TryParse(req.Q("since"), out var s) ? s : patch.Recorder.LatestSeq;
+            int wait = int.TryParse(req.Q("wait"), out var w) ? Math.Min(w, 60000) : 0;
+            int limit = int.TryParse(req.Q("limit"), out var l) ? l : 500;
+            var events = patch.Recorder.Since(since, wait, limit);
+            return Json(new { latest = patch.Recorder.LatestSeq, events });
+        }
+
+        private static System.Collections.Generic.Dictionary<string, string> Args(HttpRequest req)
+        {
+            var args = new System.Collections.Generic.Dictionary<string, string>(req.Query, StringComparer.OrdinalIgnoreCase);
+            if (!string.IsNullOrWhiteSpace(req.Body) && req.Body.TrimStart().StartsWith("{"))
             {
-                var form = FindForm(formKey, known);
-                if (form == null)
-                    return "form not open";
-                var control = Lib.UIManager.IterateControls(form).FirstOrDefault(c => c.Name == controlName);
-                if (control == null)
-                    return "control not found";
-                if (!control.Visible || !control.Enabled)
-                    return "control not visible/enabled";
-                if (!(control is IButtonControl button))
-                    return "control is not clickable";
-                button.PerformClick();
-                return null;
-            });
-            return result == null ? Json(new { ok = true }) : Json(new { error = result }, 400);
+                var body = Newtonsoft.Json.Linq.JObject.Parse(req.Body);
+                foreach (var prop in body.Properties())
+                    args[prop.Name] = prop.Value.Type == Newtonsoft.Json.Linq.JTokenType.String ? (string)prop.Value : prop.Value.ToString();
+            }
+            return args;
         }
 
         private Form FindForm(string key, System.Collections.Generic.Dictionary<string, string> known) =>
@@ -122,6 +149,12 @@ namespace Companion
         private static string FormId(Form f) => f.Handle.ToInt64().ToString("x");
 
         private static HttpResponse Json(object o, int status = 200) =>
-            new HttpResponse { Status = status, Body = JsonConvert.SerializeObject(o, Formatting.Indented) };
+            new HttpResponse { Status = status, Body = JsonConvert.SerializeObject(o, Formatting.Indented, JsonSettings) };
+
+        private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
+        {
+            NullValueHandling = NullValueHandling.Ignore,
+            ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver(),
+        };
     }
 }
