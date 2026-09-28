@@ -84,13 +84,14 @@ Each event: `seq`, `time`, `gameTime`, `source`, `type`, `form`, `formTitle`, `c
 ## Building
 
 Requires the .NET SDK (8+; builds `net48` using reference assemblies, so it works on Linux too). References come
-from an Aurora install with AuroraPatch and Lib, set with `-p:AuroraDir=...` (default `~/Aurora4x/Aurora271Full`).
+from an Aurora install with AuroraPatch and Lib: set `AuroraDir` to that folder, as an environment variable or with
+`-p:AuroraDir=...`.
 
 ```sh
+export AuroraDir=/path/to/Aurora                            # Windows: set AuroraDir=C:\Games\Aurora
 dotnet build src/AuroraAssistantApi -c Release              # build
-dotnet build src/AuroraAssistantApi -c Release -t:Deploy    # build + copy into $(AuroraDir)/Patches/AuroraAssistantApi
+dotnet build src/AuroraAssistantApi -c Release -t:Deploy    # build + copy into $AuroraDir/Patches/AuroraAssistantApi
 scripts/package.sh                                          # release zip in dist/
-scripts/dev-restart.sh                                      # deploy + restart Aurora (Linux/Proton dev setup)
 ```
 
 ## Notes

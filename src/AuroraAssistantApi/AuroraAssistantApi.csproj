@@ -9,8 +9,8 @@
     <Nullable>disable</Nullable>
     <UseWindowsForms>false</UseWindowsForms>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <!-- Aurora install used for references and deployment. -->
-    <AuroraDir Condition="'$(AuroraDir)' == ''">$(HOME)/Aurora4x/Aurora271Full</AuroraDir>
+    <!-- Aurora install (with AuroraPatch and Lib) used for references and deployment:
+         dotnet build -p:AuroraDir=... or an AuroraDir environment variable. -->
   </PropertyGroup>
 
   <ItemGroup>
@@ -37,6 +37,11 @@
       <Private>false</Private>
     </Reference>
   </ItemGroup>
+
+  <Target Name="CheckAuroraDir" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="'$(AuroraDir)' == '' Or !Exists('$(AuroraDir)/AuroraPatch.exe')"
+           Text="Set AuroraDir to an Aurora folder with AuroraPatch and Lib installed (e.g. dotnet build -p:AuroraDir=C:\Games\Aurora)." />
+  </Target>
 
   <!-- dotnet build -t:Deploy : copy the patch into Aurora's Patches folder. -->
   <Target Name="Deploy" DependsOnTargets="Build">

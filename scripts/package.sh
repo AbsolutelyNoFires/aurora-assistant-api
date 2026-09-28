@@ -3,7 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 VERSION=$(sed -n 's|.*<Version>\(.*\)</Version>.*|\1|p' src/AuroraAssistantApi/AuroraAssistantApi.csproj)
-dotnet build src/AuroraAssistantApi -c Release -v q -nologo
+dotnet build src/AuroraAssistantApi -c Release -v q -nologo   # needs AuroraDir (see README)
 OUT=dist/stage/Patches/AuroraAssistantApi
 rm -rf dist/stage && mkdir -p "$OUT"
 cp src/AuroraAssistantApi/bin/Release/net48/AuroraAssistantApi.dll "$OUT/"
