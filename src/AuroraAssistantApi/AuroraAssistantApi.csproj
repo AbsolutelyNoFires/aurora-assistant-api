@@ -3,7 +3,9 @@
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <AssemblyName>AuroraAssistantApi</AssemblyName>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
+    <Authors>AbsolutelyNoFires</Authors>
+    <Copyright>Copyright (c) 2026 AbsolutelyNoFires. MIT License.</Copyright>
     <RootNamespace>AuroraAssistantApi</RootNamespace>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>

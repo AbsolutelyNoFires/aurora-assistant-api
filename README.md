@@ -1,13 +1,23 @@
 # Aurora Assistant API
 
-An [AuroraPatch](https://github.com/Aurora-Modders/AuroraPatch) patch for [Aurora 4X](http://aurora2.pentarch.org/)
-(C# edition) that lets other programs **read and operate the running game over HTTP**: every open window as text,
-a live stream of what the player does, and player-like actions (click, type, select, answer message boxes).
+This is an [AuroraPatch](https://github.com/Aurora-Modders/AuroraPatch) patch for [Aurora 4X](http://aurora4x.com/) version 2.7.1.
 
-It was built for LLM assistants (see [aurora-assistant-bridge](http://forgejo/yecenia/aurora-assistant-bridge)), but
-it has no AI in it and any tool can use it.
+It creates an API into the visible game forms. The API provides clients with a livestream of player actions, allows clients to read the text of open game windows, and interact with forms and buttons.
 
-**Version 0.1.0** — tested with Aurora 2.7.1 on Windows-compatible .NET Framework 4.8 (run under Proton on Linux).
+It **does not** cheat at Aurora by gathering information from the game data layer or the sqlite database. This patch can **only** read values from forms which the player is looking at.
+
+Before:
+User: "Hi Claude, I'm playing Aurora, what can you see about my game?"
+Claude: "I can see the Aurora.exe process is running. I could also take a screenshot to view what you're looking at."
+
+After:
+User: "What can you see about my game?"
+Claude: "I can see that you're playing the game "United Earth Nations" in the year 2145. You have the Freighter Group-1 fleet open, and you're issuing orders to repeatedly move Infrastructure from Earth to Luna. Would you like me to add orders to move Infrastructure to Mars and Europa also?
+
+
+This tool does not have any LLM or AI. It simply opens an API within the game for external clients.
+
+**Version 0.1.1** — tested with Aurora 2.7.1 on Windows-compatible .NET Framework 4.8 (run under Proton on Linux).
 Other Aurora versions are untested.
 
 ## Install
