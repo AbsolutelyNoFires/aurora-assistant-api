@@ -15,7 +15,7 @@ User: "What can you see about my game?"
 Claude: "I can see that you're playing the game "United Earth Nations" in the year 2145. You have the Freighter Group-1 fleet open, and you're issuing orders to repeatedly move Infrastructure from Earth to Luna. Would you like me to add orders to move Infrastructure to Mars and Europa also?
 
 
-This tool does not have any LLM or AI. It simply opens an API within the game for external clients.
+This tool does not come with an LLM or AI. It simply opens an API, from within the game, for external clients to connect to, like the [Aurora Assistant Bridge](https://github.com/AbsolutelyNoFires/aurora-assistant-bridge).
 
 **Version 0.1.1** — tested with Aurora 2.7.1 on Windows-compatible .NET Framework 4.8 (run under Proton on Linux).
 Other Aurora versions are untested.
