@@ -2,8 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
-    <AssemblyName>Companion</AssemblyName>
-    <RootNamespace>Companion</RootNamespace>
+    <AssemblyName>AuroraAssistantApi</AssemblyName>
+    <Version>0.1.0</Version>
+    <RootNamespace>AuroraAssistantApi</RootNamespace>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <UseWindowsForms>false</UseWindowsForms>
@@ -39,8 +40,8 @@
 
   <!-- dotnet build -t:Deploy : copy the patch into Aurora's Patches folder. -->
   <Target Name="Deploy" DependsOnTargets="Build">
-    <MakeDir Directories="$(AuroraDir)/Patches/Companion" />
-    <Copy SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb" DestinationFolder="$(AuroraDir)/Patches/Companion" />
+    <MakeDir Directories="$(AuroraDir)/Patches/AuroraAssistantApi" />
+    <Copy SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb" DestinationFolder="$(AuroraDir)/Patches/AuroraAssistantApi" />
   </Target>
 
 </Project>

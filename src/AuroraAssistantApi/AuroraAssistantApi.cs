@@ -5,17 +5,22 @@ using System.Windows.Forms;
 using AuroraPatch;
 using HarmonyLib;
 
-namespace Companion
+namespace AuroraAssistantApi
 {
     /// <summary>
-    /// Exposes Aurora's UI (as text) and, later, game state and actions over a local HTTP API
-    /// for the companion bridge.
+    /// Exposes Aurora's UI as text, a stream of UI events, and player-like actions over HTTP, for
+    /// assistants and other tools.
     /// </summary>
-    public class Companion : AuroraPatch.Patch
+    public class AuroraAssistantApi : AuroraPatch.Patch
     {
-        public const int Port = 47100;
+        public static string Version =>
+            typeof(AuroraAssistantApi).Assembly.GetName().Version.ToString(3);
 
-        public override string Description => "HTTP API for the LLM companion bridge (127.0.0.1:" + Port + ").";
+        public override string Description =>
+            $"Aurora Assistant API {Version}: HTTP API on {(Settings.Lan ? "all interfaces" : "127.0.0.1")}:{Settings.Port}. " +
+            "Use Change settings for network access, port and a command to launch with the game.";
+
+        internal Settings Settings { get; private set; } = new Settings();
 
         public override IEnumerable<string> Dependencies => new[] { "Lib" };
 
@@ -27,6 +32,7 @@ namespace Companion
 
         protected override void Loaded(Harmony harmony)
         {
+            Settings = LoadSettings();
             Lib = GetDependency<Lib.Lib>("Lib");
             harmony.Patch(
                 AccessTools.Method(typeof(Button), "OnClick"),
@@ -48,9 +54,52 @@ namespace Companion
             });
 
             var api = new Api(this);
-            server = new HttpServer(Port, api.Handle, LogError);
+            var address = Settings.Lan ? System.Net.IPAddress.Any : System.Net.IPAddress.Loopback;
+            server = new HttpServer(address, Settings.Port, api.Handle, LogError);
             server.Start();
-            LogInfo("Listening on http://127.0.0.1:" + Port + "/");
+            LogInfo($"Version {Version} listening on http://{address}:{Settings.Port}/");
+
+            RunLaunchCommand();
+        }
+
+        protected override void ChangeSettings()
+        {
+            using (var form = new SettingsForm(LoadSettings(), Version))
+            {
+                if (form.ShowDialog() == DialogResult.OK)
+                {
+                    Settings = form.Result;
+                    Serialize("settings", Settings);
+                }
+            }
+        }
+
+        private Settings LoadSettings()
+        {
+            // Deserialize logs an error when the file does not exist yet, so check first.
+            var path = System.IO.Path.Combine(Folder, "settings.json");
+            return System.IO.File.Exists(path) ? Deserialize<Settings>("settings") ?? new Settings() : new Settings();
+        }
+
+        /// <summary>Start the optional companion command (e.g. the assistant bridge) through cmd.exe.</summary>
+        private void RunLaunchCommand()
+        {
+            if (string.IsNullOrWhiteSpace(Settings.LaunchCommand))
+                return;
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("cmd.exe", "/c " + Settings.LaunchCommand)
+                {
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WorkingDirectory = Folder,
+                });
+                LogInfo("Launched: " + Settings.LaunchCommand);
+            }
+            catch (Exception e)
+            {
+                LogError("Launch command failed: " + e.Message);
+            }
         }
 
         /// <summary>Run a function on Aurora's UI thread and return its result.</summary>

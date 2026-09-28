@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Companion
+namespace AuroraAssistantApi
 {
     /// <summary>
     /// Native Win32 dialogs (MessageBox.Show) are not WinForms Forms, so they are read and

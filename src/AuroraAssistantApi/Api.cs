@@ -3,15 +3,15 @@ using System.Linq;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 
-namespace Companion
+namespace AuroraAssistantApi
 {
     /// <summary>Routes HTTP requests to UI-thread reads of Aurora's state.</summary>
     internal class Api
     {
-        private readonly Companion patch;
+        private readonly AuroraAssistantApi patch;
         private readonly Actions actions;
 
-        public Api(Companion patch)
+        public Api(AuroraAssistantApi patch)
         {
             this.patch = patch;
             actions = new Actions(patch, patch.Recorder);
@@ -48,7 +48,8 @@ namespace Companion
             return patch.OnUi(() => new
             {
                 ok = true,
-                patch = typeof(Companion).Assembly.GetName().Version.ToString(),
+                api = "aurora-assistant-api",
+                version = AuroraAssistantApi.Version,
                 aurora = patch.AuroraChecksum,
                 // The tactical map title carries race, game date and wealth.
                 title = patch.TacticalMap?.Text,

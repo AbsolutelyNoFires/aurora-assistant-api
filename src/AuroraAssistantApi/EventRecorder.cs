@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace Companion
+namespace AuroraAssistantApi
 {
     internal class UiEvent
     {
@@ -35,7 +35,7 @@ namespace Companion
         private const int UserInputWindowMs = 1000;
         private const int TextIdleFlushMs = 1500;
 
-        private readonly Companion patch;
+        private readonly AuroraAssistantApi patch;
         private readonly LinkedList<UiEvent> events = new LinkedList<UiEvent>();
         private readonly object sync = new object();
         private long nextSeq = 1;
@@ -62,7 +62,7 @@ namespace Companion
             public int LastTick;
         }
 
-        public EventRecorder(Companion patch)
+        public EventRecorder(AuroraAssistantApi patch)
         {
             this.patch = patch;
         }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace Companion
+namespace AuroraAssistantApi
 {
     /// <summary>
     /// Pairs caption labels with the controls they describe, the way a screen reader's

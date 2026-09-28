@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace Companion
+namespace AuroraAssistantApi
 {
     /// <summary>
     /// Performs player-like actions on named controls. Actions run asynchronously on the UI thread:
@@ -13,10 +13,10 @@ namespace Companion
     /// </summary>
     internal class Actions
     {
-        private readonly Companion patch;
+        private readonly AuroraAssistantApi patch;
         private readonly EventRecorder recorder;
 
-        public Actions(Companion patch, EventRecorder recorder)
+        public Actions(AuroraAssistantApi patch, EventRecorder recorder)
         {
             this.patch = patch;
             this.recorder = recorder;
@@ -60,10 +60,10 @@ namespace Companion
             }));
 
             if (!done.Wait(waitMs))
-                return new Result { Status = "running", Dialogs = global::Companion.Dialogs.List() };
+                return new Result { Status = "running", Dialogs = global::AuroraAssistantApi.Dialogs.List() };
             if (failure != null)
                 return new Result { Status = "error", Error = failure };
-            return new Result { Status = "done", Dialogs = NonEmpty(global::Companion.Dialogs.List()) };
+            return new Result { Status = "done", Dialogs = NonEmpty(global::AuroraAssistantApi.Dialogs.List()) };
         }
 
         private static List<Dialogs.Dialog> NonEmpty(List<Dialogs.Dialog> d) => d.Count == 0 ? null : d;

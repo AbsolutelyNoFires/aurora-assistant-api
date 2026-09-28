@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace Companion
+namespace AuroraAssistantApi
 {
     internal class HttpRequest
     {
@@ -36,9 +36,9 @@ namespace Companion
         private readonly Func<HttpRequest, HttpResponse> handler;
         private readonly Action<string> logError;
 
-        public HttpServer(int port, Func<HttpRequest, HttpResponse> handler, Action<string> logError)
+        public HttpServer(IPAddress address, int port, Func<HttpRequest, HttpResponse> handler, Action<string> logError)
         {
-            listener = new TcpListener(IPAddress.Loopback, port);
+            listener = new TcpListener(address, port);
             this.handler = handler;
             this.logError = logError;
         }
@@ -46,7 +46,7 @@ namespace Companion
         public void Start()
         {
             listener.Start();
-            new Thread(AcceptLoop) { IsBackground = true, Name = "Companion HTTP" }.Start();
+            new Thread(AcceptLoop) { IsBackground = true, Name = "Aurora Assistant API HTTP" }.Start();
         }
 
         private void AcceptLoop()
