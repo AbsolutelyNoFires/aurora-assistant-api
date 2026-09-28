@@ -55,7 +55,7 @@ namespace AuroraAssistantApi
             layout.Controls.Add(txtLaunch);
             layout.Controls.Add(new Label
             {
-                Text = "Runs via cmd.exe. Windows example: aurora-assistant\r\nWine/Proton example: start /unix /home/me/.local/bin/aurora-assistant",
+                Text = "Runs via cmd.exe, e.g.: aurora-assistant\r\nUnder Proton this cannot start Linux programs; start those from your Aurora launch script.",
                 AutoSize = true, ForeColor = Color.DimGray,
             });
 

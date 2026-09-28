@@ -27,7 +27,8 @@ Select **AuroraAssistantApi** in the AuroraPatch launcher and press **Change set
   interfaces). There is no authentication: anyone who can reach the port can read and operate your game.
 - **Port:** default `47100`.
 - **Command to run when Aurora starts** (optional), run through `cmd.exe` — e.g. `aurora-assistant` to start the
-  bridge with the game. Under Wine/Proton, start a Linux program with `start /unix /path/to/program`.
+  bridge with the game on Windows. Under Proton the game runs inside the Steam Runtime container and cannot start
+  Linux programs (`start /unix` does not work there), so start the bridge from the script that launches Aurora.
 
 Settings are saved in `Patches\AuroraAssistantApi\settings.json` and apply the next time Aurora starts.
 
